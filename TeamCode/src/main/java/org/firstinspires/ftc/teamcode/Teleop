@@ -1,0 +1,418 @@
+// places where arm & claw are coded are marked in capital letters
+
+
+
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+/*
+ * This file contains an example of a Linear "OpMode".
+ * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
+ * The names of OpModes appear on the menu of the FTC Driver Station.
+ * When a selection is made from the menu, the corresponding OpMode is executed.
+ *
+ * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
+ * This code will work with either a Mecanum-Drive or an X-Drive train.
+ * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
+ * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
+ *
+ * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
+ *
+ * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
+ * Each motion axis is controlled by one Joystick axis.
+ *
+ * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
+ * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
+ * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
+ *
+ * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
+ * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
+ * the direction of all 4 motors (see code below).
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ */
+
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "Hydra TeleOp")
+public class TeleOp extends OpMode {
+
+    // Declare OpMode members for each of the 4 motors.
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor flMotor;
+    private DcMotor blMotor;
+    private DcMotor frMotor;
+    private DcMotor brMotor;
+
+    private DcMotor liftRotate;
+    private DcMotor liftHeight;
+// CLAW/ARM
+    private Servo leftClawServo;
+    private Servo rightClawServo;
+
+    private Servo clawServo3;
+
+    private float LEFT_CLAW_OPEN_POSITION = 0.5f; //use SRS and update this value --> done
+    private float LEFT_CLAW_CLOSE_POSITION = 1.0f; //use SRS and update this value --> done
+    private float RIGHT_CLAW_OPEN_POSITION = 0.5f; //use SRS and update this value ---> don
+    private float RIGHT_CLAW_CLOSE_POSITION = 0.0f; //use SRS and update this valuepackage org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+/*
+ * This file contains an example of a Linear "OpMode".
+ * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
+ * The names of OpModes appear on the menu of the FTC Driver Station.
+ * When a selection is made from the menu, the corresponding OpMode is executed.
+ *
+ * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
+ * This code will work with either a Mecanum-Drive or an X-Drive train.
+ * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
+ * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
+ *
+ * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
+ *
+ * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
+ * Each motion axis is controlled by one Joystick axis.
+ *
+ * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
+ * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
+ * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
+ *
+ * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
+ * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
+ * the direction of all 4 motors (see code below).
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ */
+
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "Hydra TeleOp")
+public class TeleOp extends OpMode {
+
+    // Declare OpMode members for each of the 4 motors.
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor flMotor;
+    private DcMotor blMotor;
+    private DcMotor frMotor;
+    private DcMotor brMotor;
+
+    private DcMotor liftRotate;
+    private DcMotor liftHeight;
+
+    private Servo leftClawServo;
+    private Servo rightClawServo;
+
+    private Servo clawServo3;
+
+    private float LEFT_CLAW_OPEN_POSITION = 0.5f; //use SRS and update this value 
+    private float LEFT_CLAW_CLOSE_POSITION = 1.0f; //use SRS and update this value
+    private float RIGHT_CLAW_OPEN_POSITION = 0.5f; //use SRS and update this value
+    private float RIGHT_CLAW_CLOSE_POSITION = 0.0f; //use SRS and update this value
+
+    @Override
+    public void init() {
+
+        flMotor = hardwareMap.get(DcMotor.class, "LF");
+        frMotor = hardwareMap.get(DcMotor.class, "RF");
+        blMotor = hardwareMap.get(DcMotor.class, "LB");
+        brMotor = hardwareMap.get(DcMotor.class, "RB");
+        liftRotate = hardwareMap.get(DcMotor.class, "liftRotate"); // find name
+        liftHeight = hardwareMap.get(DcMotor.class, "liftExtend"); // too
+        leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
+        rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
+        clawServo3 = hardwareMap.get(Servo.class, "clawServo3");
+
+        flMotor.setPower(0.0);
+        frMotor.setPower(0.0);
+        blMotor.setPower(0.0);
+        brMotor.setPower(0.0);
+        liftRotate.setPower(0.0);
+        liftHeight.setPower(0.0);
+        leftClawServo.setPosition(0.5);// was 0.0
+        rightClawServo.setPosition(0.5);// was 0.0
+        clawServo3.setPosition(1.0); // what is 1.0 in this servo? up or down?
+
+        flMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        blMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        brMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftHeight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        flMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        blMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        brMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        liftRotate.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftHeight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+    }
+
+    @Override
+    public void loop() {
+
+        //Driver #1 Gamepad Controls
+        //Buttons
+        boolean G1xButton = gamepad1.x;
+        boolean G1aButton = gamepad1.a;
+        boolean G1bButton = gamepad1.b;
+        boolean G1yButton = gamepad1.y;
+
+        //Triggers
+        double G1rightTrigger = gamepad1.right_trigger;
+        double G1leftTrigger = gamepad1.left_trigger;
+
+        //Sticks X and Y values
+        double G1RightStickX = gamepad1.right_stick_x;
+        double G1RightStickY = gamepad1.right_stick_y;
+
+        double G1LeftStickX = gamepad1.left_stick_x;
+        double G1LeftStickY = gamepad1.left_stick_y;
+
+        //Bumpers
+        boolean G1LeftBumper = gamepad1.left_bumper;
+        boolean G1RightBumper = gamepad1.right_bumper;
+
+        //Driver #2 Gamepad Controls
+        //Buttons
+        boolean G2xButton = gamepad2.x;
+        boolean G2aButton = gamepad2.a;
+        boolean G2bButton = gamepad2.b;
+        boolean G2yButton = gamepad2.y;
+
+        //Triggers
+        double G2rightTrigger = gamepad2.right_trigger;
+        double G2leftTrigger = gamepad2.left_trigger;
+
+        //Sticks X and Y values
+        double G2RightStickX = gamepad2.right_stick_x;
+        double G2RightStickY = gamepad2.right_stick_y;
+
+        double G2LeftStickX = gamepad2.left_stick_x;
+        double G2LeftStickY = gamepad2.left_stick_y;
+
+        //DriveTrain Variables
+        double flMotorPower = 0.0;
+        double frMotorPower = 0.0;
+        double blMotorPower = 0.0;
+        double brMotorPower = 0.0;
+        double liftRotateMotorPower = 0.0;
+        double liftHeightMotorPower = 0.0;
+        double turnPower = 0.0;
+
+        // G1
+        // Rt = 1  LS = -1 Rs = -1
+        turnPower = G1rightTrigger - G1leftTrigger; //1/*
+        //frMotorPower = ((G1LeftStickY - G1RightStickX) - (turnPower)); //-1
+        //flMotorPower = ((G1LeftStickY + G1RightStickX) + (turnPower));//-1
+        //brMotorPower = ((G1LeftStickY + G1RightStickX) - (turnPower));//-3
+        //blMotorPower = ((G1LeftStickY - G1RightStickX) + (turnPower));//1*/
+
+        frMotorPower = ((turnPower - G1LeftStickX) - (G1RightStickX));
+        flMotorPower = ((turnPower + G1LeftStickX) + (G1RightStickX));
+        brMotorPower = ((turnPower + G1LeftStickX) - (G1RightStickX));
+        blMotorPower = ((turnPower - G1LeftStickX) + (G1RightStickX));
+
+        // G2
+// WHERE THE ARM IS CODED (these will appear below where claw is coded as a method) 
+        liftRotateMotorPower = (G2LeftStickY - G2LeftStickX);
+        liftHeightMotorPower = (G2rightTrigger - G2leftTrigger);
+
+        flMotor.setPower(flMotorPower);//-1
+        frMotor.setPower(frMotorPower);//1
+        blMotor.setPower(-blMotorPower);//-1
+        brMotor.setPower(brMotorPower);//-3
+
+        liftRotate.setPower(liftRotateMotorPower);
+        liftHeight.setPower(liftHeightMotorPower);
+
+        if (G2aButton) {
+            // Program Left and Right Claw to close ....i know its wierd just go with it
+            leftClawServo.setPosition(LEFT_CLAW_OPEN_POSITION);
+            rightClawServo.setPosition(RIGHT_CLAW_OPEN_POSITION);
+        } else if (G2bButton) {
+            // Program Left and Right Claw to open
+            leftClawServo.setPosition(LEFT_CLAW_CLOSE_POSITION);
+            rightClawServo.setPosition(RIGHT_CLAW_CLOSE_POSITION);
+        }
+        if (G2xButton) {
+            clawServo3.setPosition(0.0);
+        }
+        if (G2yButton) {
+            clawServo3.setPosition(1.0);
+        }
+//        double clawMotorPosition = G2RightStickX - G2LeftStickX;
+//        if (clawMotorPosition != 0){
+//            leftClawServo.setPosition(leftClawServo.getPosition()-clawMotorPosition);
+//            rightClawServo.setPosition(rightClawServo.getPosition()+clawMotorPosition);
+//        }
+
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Front left/Right", "%4.2f, %4.2f", flMotorPower, frMotorPower);
+        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", blMotorPower, brMotorPower);
+        telemetry.addData("Claw Rotation", "%4.2f", liftRotateMotorPower);
+        telemetry.addData("Front left/Right", "%4.2f", liftHeightMotorPower);
+        telemetry.update();
+    }
+}
+---
+
+    @Override
+    public void init() {
+
+        flMotor = hardwareMap.get(DcMotor.class, "LF");
+        frMotor = hardwareMap.get(DcMotor.class, "RF");
+        blMotor = hardwareMap.get(DcMotor.class, "LB");
+        brMotor = hardwareMap.get(DcMotor.class, "RB");
+        liftRotate = hardwareMap.get(DcMotor.class, "liftRotate"); // find name
+        liftHeight = hardwareMap.get(DcMotor.class, "liftExtend"); // too
+        leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
+        rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
+        clawServo3 = hardwareMap.get(Servo.class, "clawServo3");
+
+        flMotor.setPower(0.0);
+        frMotor.setPower(0.0);
+        blMotor.setPower(0.0);
+        brMotor.setPower(0.0);
+        liftRotate.setPower(0.0);
+        liftHeight.setPower(0.0);
+        leftClawServo.setPosition(0.5);// was 0.0
+        rightClawServo.setPosition(0.5);// was 0.0
+        clawServo3.setPosition(1.0); // what is 1.0 in this servo? up or down?
+
+        flMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        blMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        brMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftHeight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        flMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        blMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        brMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        liftRotate.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftHeight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+    }
+
+    @Override
+    public void loop() {
+
+        //Driver #1 Gamepad Controls
+        //Buttons
+        boolean G1xButton = gamepad1.x;
+        boolean G1aButton = gamepad1.a;
+        boolean G1bButton = gamepad1.b;
+        boolean G1yButton = gamepad1.y;
+
+        //Triggers
+        double G1rightTrigger = gamepad1.right_trigger;
+        double G1leftTrigger = gamepad1.left_trigger;
+
+        //Sticks X and Y values
+        double G1RightStickX = gamepad1.right_stick_x;
+        double G1RightStickY = gamepad1.right_stick_y;
+
+        double G1LeftStickX = gamepad1.left_stick_x;
+        double G1LeftStickY = gamepad1.left_stick_y;
+
+        //Bumpers
+        boolean G1LeftBumper = gamepad1.left_bumper;
+        boolean G1RightBumper = gamepad1.right_bumper;
+
+        //Driver #2 Gamepad Controls
+        //Buttons
+        boolean G2xButton = gamepad2.x;
+        boolean G2aButton = gamepad2.a;
+        boolean G2bButton = gamepad2.b;
+        boolean G2yButton = gamepad2.y;
+
+        //Triggers
+        double G2rightTrigger = gamepad2.right_trigger;
+        double G2leftTrigger = gamepad2.left_trigger;
+
+        //Sticks X and Y values
+        double G2RightStickX = gamepad2.right_stick_x;
+        double G2RightStickY = gamepad2.right_stick_y;
+
+        double G2LeftStickX = gamepad2.left_stick_x;
+        double G2LeftStickY = gamepad2.left_stick_y;
+
+        //DriveTrain Variables
+        double flMotorPower = 0.0;
+        double frMotorPower = 0.0;
+        double blMotorPower = 0.0;
+        double brMotorPower = 0.0;
+        double liftRotateMotorPower = 0.0;
+        double liftHeightMotorPower = 0.0;
+        double turnPower = 0.0;
+
+        // G1
+        // Rt = 1  LS = -1 Rs = -1
+        turnPower = G1rightTrigger - G1leftTrigger; //1/*
+        //frMotorPower = ((G1LeftStickY - G1RightStickX) - (turnPower)); //-1
+        //flMotorPower = ((G1LeftStickY + G1RightStickX) + (turnPower));//-1
+        //brMotorPower = ((G1LeftStickY + G1RightStickX) - (turnPower));//-3
+        //blMotorPower = ((G1LeftStickY - G1RightStickX) + (turnPower));//1*/
+
+        frMotorPower = ((turnPower - G1LeftStickX) - (G1RightStickX));
+        flMotorPower = ((turnPower + G1LeftStickX) + (G1RightStickX));
+        brMotorPower = ((turnPower + G1LeftStickX) - (G1RightStickX));
+        blMotorPower = ((turnPower - G1LeftStickX) + (G1RightStickX));
+
+        // G2
+
+        liftRotateMotorPower = (G2LeftStickY - G2LeftStickX);
+        liftHeightMotorPower = (G2rightTrigger - G2leftTrigger);
+
+        flMotor.setPower(flMotorPower);//-1
+        frMotor.setPower(frMotorPower);//1
+        blMotor.setPower(-blMotorPower);//-1
+        brMotor.setPower(brMotorPower);//-3
+
+        liftRotate.setPower(liftRotateMotorPower);
+        liftHeight.setPower(liftHeightMotorPower);
+
+// THIS IS WHERE CLAW IS CODED
+
+        if (G2aButton) {
+            // Program Left and Right Claw to close ....i know its wierd just go with it
+            leftClawServo.setPosition(LEFT_CLAW_OPEN_POSITION);
+            rightClawServo.setPosition(RIGHT_CLAW_OPEN_POSITION);
+        } else if (G2bButton) {
+            // Program Left and Right Claw to open
+            leftClawServo.setPosition(LEFT_CLAW_CLOSE_POSITION);
+            rightClawServo.setPosition(RIGHT_CLAW_CLOSE_POSITION);
+        }
+        if (G2xButton) {
+            clawServo3.setPosition(0.0);
+        }
+        if (G2yButton) {
+            clawServo3.setPosition(1.0);
+        }
+//        double clawMotorPosition = G2RightStickX - G2LeftStickX;
+//        if (clawMotorPosition != 0){
+//            leftClawServo.setPosition(leftClawServo.getPosition()-clawMotorPosition);
+//            rightClawServo.setPosition(rightClawServo.getPosition()+clawMotorPosition);
+//        }
+
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Front left/Right", "%4.2f, %4.2f", flMotorPower, frMotorPower);
+        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", blMotorPower, brMotorPower);
+        telemetry.addData("Claw Rotation", "%4.2f", liftRotateMotorPower);
+        telemetry.addData("Front left/Right", "%4.2f", liftHeightMotorPower);
+        telemetry.update();
+    }
+}
