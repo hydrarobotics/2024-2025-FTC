@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
-@Autonomous(name = "OneSampleAuto", group = "TrajectorySequenceTest")
+@Autonomous(name = "OneSampleAuto", group = "Tests")
 public class OneSampleAuto extends LinearOpMode {
     SampleMecanumDrive drive;
 
