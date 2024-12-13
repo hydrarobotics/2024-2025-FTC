@@ -13,5 +13,4 @@ public class Constants {
     public final double clawRotateServo_START = 0.0;
     public final double clawRotateServo_GRAB = 0.0;
     public final double clawRotateServo_RELEASE = 0.5;
-
 }

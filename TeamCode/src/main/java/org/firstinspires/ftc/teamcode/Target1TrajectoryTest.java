@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
@@ -25,16 +26,14 @@ public class Target1TrajectoryTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        RobotHardware robot = new RobotHardware();
+        robot.init(hardwareMap);
+        robot.liftRotateMotor.setTargetPosition(-5000);
+        robot.liftExtendMotor.setTargetPosition(8000);
+        robot.liftRotateMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.liftExtendMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.liftRotateMotor.setPower(1.0);
+        robot.liftRotateMotor.setPower(1.0);
 
-        //Target1
-        TrajectorySequence Target1 = drive.trajectorySequenceBuilder(new Pose2d(-36.52, -66.41, Math.toRadians(90.00)))
-                .splineTo(new Vector2d(-35.55, -13.48), Math.toRadians(88.94))
-                .lineToConstantHeading(new Vector2d(56.36, -13.76))
-                .build();
-
-        drive.setPoseEstimate(Target1.start());
-        ;
-        waitForStart();
-        drive.followTrajectorySequence(Target1);
     }
 }
