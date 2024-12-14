@@ -22,10 +22,13 @@ public class AlexOp extends OpMode {
     private Servo claw2Servo;
     private Servo clawServo3;
 
-    private float LEFT_CLAW_OPEN_POSITION = 0.5f; //use SRS and update this value
-    private float LEFT_CLAW_CLOSE_POSITION = 1.0f; //use SRS and update this value
-    private float RIGHT_CLAW_OPEN_POSITION = 0.5f; //use SRS and update this value
-    private float RIGHT_CLAW_CLOSE_POSITION = 0.0f; //use SRS and update this value
+    private boolean setTrue;
+
+    private boolean Manual = true;
+    private float LEFT_CLAW_OPEN_POSITION = 1.0f; //use SRS and update this value
+    private float LEFT_CLAW_CLOSE_POSITION = 0.5f; //use SRS and update this value
+    private float RIGHT_CLAW_OPEN_POSITION = 0.0f; //use SRS and update this value
+    private float RIGHT_CLAW_CLOSE_POSITION = 0.5f; //use SRS and update this value
 
     @Override
     public void init() {
@@ -54,15 +57,15 @@ public class AlexOp extends OpMode {
         frMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         blMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         brMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         strMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         flMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         blMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         brMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        strMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        strMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -112,15 +115,26 @@ public class AlexOp extends OpMode {
         double G2LeftStickX = gamepad2.left_stick_x;
         double G2LeftStickY = gamepad2.left_stick_y;
 
+        //Bumpers
+        boolean G2LeftBumper = gamepad2.left_bumper;
+        boolean G2RightBumper = gamepad2.right_bumper;
+
+        //D-pads
+        boolean G2DpadUp = gamepad2.dpad_up;
+        boolean G2DpadRight = gamepad2.dpad_right;
+        boolean G2DpadDown = gamepad2.dpad_down;
+        boolean G2DpadLeft = gamepad2.dpad_left;
+
         //DriveTrain Variables
         double flMotorPower = 0.0;
         double frMotorPower = 0.0;
         double blMotorPower = 0.0;
         double brMotorPower = 0.0;
-        double armMotorPower;
-        int armMotorTarget;
-        double strMotorPower;
-        double turnPower = (G1rightTrigger - G1leftTrigger);
+        double armMotorPower = 0.0;
+        double strMotorPower = 0.0;
+        double forwardPower = (G1rightTrigger - G1leftTrigger);
+        int armTarget;
+        int strTarget;
         //double servoLPos
 
         // G1
@@ -131,37 +145,85 @@ public class AlexOp extends OpMode {
         brMotorPower = ((G1LeftStickY + G1RightStickX) - (turnPower));//-3
         blMotorPower = ((G1LeftStickY - G1RightStickX) + (turnPower));//1*/
 
-        frMotorPower = ((turnPower - G1LeftStickX) - (G1RightStickX));
-        flMotorPower = ((turnPower + G1LeftStickX) + (G1RightStickX));
-        brMotorPower = ((turnPower + G1LeftStickX) - (G1RightStickX));
-        blMotorPower = ((turnPower - G1LeftStickX) + (G1RightStickX));
+        frMotorPower = ((forwardPower - G1LeftStickX) - (G1RightStickX));
+        flMotorPower = ((forwardPower + G1LeftStickX) + (G1RightStickX));
+        brMotorPower = ((forwardPower + G1LeftStickX) - (G1RightStickX));
+        blMotorPower = ((forwardPower - G1LeftStickX) + (G1RightStickX));
 
         flMotor.setPower(-flMotorPower);//-1
         frMotor.setPower(frMotorPower);//1
         blMotor.setPower(-blMotorPower);//-1
         brMotor.setPower(brMotorPower);
 
-        armMotorPower = (G2LeftStickY - G2LeftStickX);
-        strMotorPower = (G2rightTrigger - G2leftTrigger);
+        // Gamepad 2
 
-        armMotor.setPower(armMotorPower);
-        strMotor.setPower(strMotorPower);
+        if (G2RightBumper){
+            Manual = true;
+        }
+        if (G2LeftBumper){
+            Manual = false;
+        }
+
+        if (Manual) {
+            armTarget = (int) (-G2LeftStickY * -5200);
+            strTarget = (int) ((G2rightTrigger - G2leftTrigger) * 2200);
+
+            if (armTarget == 0) {
+                armMotorPower = 0.0;
+            } else if (armTarget < 0) {
+                armMotorPower = 1.0;
+            } else if (armTarget > 0) {
+                armTarget = 0;
+                armMotorPower = 1.0;
+            }
+
+            if (strTarget == 0) {
+                strMotorPower = 0.0;
+            } else if (strTarget > 0) {
+                strMotorPower = 1.0;
+            } else if (strTarget < 0) {
+                strTarget = 0;
+                strMotorPower = 1.0;
+            }
+
+            armMotor.setTargetPosition(armTarget);
+            strMotor.setTargetPosition(strTarget);
+        }
+
+        armMotor.setPower(1.0);
+        strMotor.setPower(1.0);
+
+        if (G2DpadUp){
+            setHighBar();
+        }
+        if (G2DpadRight){
+            Score();
+        }
+        if (G2DpadDown){
+            grabSub();
+        }
+        if (G2DpadLeft){
+            Transit();
+        }
 
         if (G2aButton) {
             // Program Left and Right Claw to close ....i know its wierd just go with it
             claw1Servo.setPosition(LEFT_CLAW_OPEN_POSITION);
             claw2Servo.setPosition(RIGHT_CLAW_OPEN_POSITION);
-        } else if (G2bButton) {
+        } else {
             // Program Left and Right Claw to open
             claw1Servo.setPosition(LEFT_CLAW_CLOSE_POSITION);
             claw2Servo.setPosition(RIGHT_CLAW_CLOSE_POSITION);
         }
+
         if (G2xButton) {
             clawServo3.setPosition(0.0);
         }
+
         if (G2yButton) {
             clawServo3.setPosition(1.0);
         }
+
         //double clawMotorPosition = G2RightStickX - G2LeftStickX;
         //if (clawMotorPosition != 0){
         //    claw1Servo.setPosition(leftClawServo.getPosition()-clawMotorPosition);
@@ -169,14 +231,37 @@ public class AlexOp extends OpMode {
         //}
 
 
+        telemetry.addData("RotatePos: ", armMotor.getCurrentPosition());
+        telemetry.addData("LiftPos: ", strMotor.getCurrentPosition());
+        //telemetry.addData("Arm Target: ", armTarget);
+        //telemetry.addData("String Target: ", strTarget);
+    }
 
-        if (gamepad1.a) {
-            armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    public void grabSub(){
+        setTrue = false;
+        armMotor.setTargetPosition(-500);
+        strMotor.setTargetPosition(2300);
+        clawServo3.setPosition(0.0);
+    }
+
+    public void Transit(){
+        setTrue = false;
+        armMotor.setTargetPosition(-700);
+        strMotor.setTargetPosition(0);
+        clawServo3.setPosition(1.0);
+    }
+
+    public void setHighBar(){
+        setTrue = true;
+        armMotor.setTargetPosition(-5200);
+        //strMotor.setTargetPosition();
+        clawServo3.setPosition(0.0);
+    }
+
+    public void Score(){
+        if (setTrue){
+            clawServo3.setPosition(1.0);
         }
-
-        telemetry.addData("RotatePos", armMotor.getCurrentPosition());
-        telemetry.addData("LiftPos", strMotor.getCurrentPosition());
     }
 
 }
