@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -18,11 +19,11 @@ public class AlexOp extends OpMode {
 
     private DcMotor armMotor;
     private DcMotor strMotor;
-    private Servo claw1Servo;
-    private Servo claw2Servo;
-    private Servo clawServo3;
+    private Servo leftClawServo;
+    private Servo rightClawServo;
+    private Servo rotateClawServo;
 
-    private boolean setTrue;
+    private boolean setTrue; // Used to check if the current preset position is at high bar.
 
     private boolean Manual = true;
     private float LEFT_CLAW_OPEN_POSITION = 1.0f; //use SRS and update this value
@@ -30,42 +31,21 @@ public class AlexOp extends OpMode {
     private float RIGHT_CLAW_OPEN_POSITION = 0.0f; //use SRS and update this value
     private float RIGHT_CLAW_CLOSE_POSITION = 0.5f; //use SRS and update this value
 
+    private RobotHardware robot = new RobotHardware(); // Class with all of the robot's hardware.
+
     @Override
     public void init() {
+        robot.init(hardwareMap);
 
-        flMotor = hardwareMap.get(DcMotor.class, "LF");
-        frMotor = hardwareMap.get(DcMotor.class, "RF");
-        blMotor = hardwareMap.get(DcMotor.class, "LB");
-        brMotor = hardwareMap.get(DcMotor.class, "RB");
-        armMotor = hardwareMap.get(DcMotor.class, "liftRotate"); // find name
-        strMotor = hardwareMap.get(DcMotor.class, "liftExtend"); // too
-        claw1Servo = hardwareMap.get(Servo.class, "leftClawServo"); // ya
-        claw2Servo = hardwareMap.get(Servo.class, "rightClawServo");
-        clawServo3 = hardwareMap.get(Servo.class, "clawRotateServo");
-
-        flMotor.setPower(0.0);
-        frMotor.setPower(0.0);
-        blMotor.setPower(0.0);
-        brMotor.setPower(0.0);
-        armMotor.setPower(0.0);
-        strMotor.setPower(0.0);
-        claw1Servo.setPosition(0.5);
-        claw2Servo.setPosition(0.5);
-        clawServo3.setPosition(1.0);
-
-        flMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        blMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        brMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        strMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        flMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        blMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        brMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        strMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        flMotor = robot.LFMotor;
+        frMotor = robot.RFMotor;
+        blMotor = robot.LBMotor;
+        brMotor = robot.RBMotor;
+        armMotor = robot.liftRotateMotor; // The arm's rotation motor.
+        strMotor = robot.liftExtendMotor; // The arm extension motor.
+        leftClawServo = robot.leftClawServo;
+        rightClawServo = robot.rightClawServo;
+        rotateClawServo = robot.clawRotateServo; // Rotates the claw.
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -133,30 +113,22 @@ public class AlexOp extends OpMode {
         double armMotorPower = 0.0;
         double strMotorPower = 0.0;
         double forwardPower = (G1rightTrigger - G1leftTrigger);
-        int armTarget;
-        int strTarget;
-        //double servoLPos
 
-        // G1
-        // Rt = 1  LS = -1 Rs = -1
-        /*turnPower = G1rightTrigger - G1leftTrigger; //1
-        frMotorPower = ((G1LeftStickY - G1RightStickX) - (turnPower)); //-1
-        flMotorPower = ((G1LeftStickY + G1RightStickX) + (turnPower));//-1
-        brMotorPower = ((G1LeftStickY + G1RightStickX) - (turnPower));//-3
-        blMotorPower = ((G1LeftStickY - G1RightStickX) + (turnPower));//1*/
+        //double servoLPos
 
         frMotorPower = ((forwardPower - G1LeftStickX) - (G1RightStickX));
         flMotorPower = ((forwardPower + G1LeftStickX) + (G1RightStickX));
         brMotorPower = ((forwardPower + G1LeftStickX) - (G1RightStickX));
         blMotorPower = ((forwardPower - G1LeftStickX) + (G1RightStickX));
 
-        flMotor.setPower(-flMotorPower);//-1
-        frMotor.setPower(frMotorPower);//1
-        blMotor.setPower(-blMotorPower);//-1
+        flMotor.setPower(-flMotorPower);
+        frMotor.setPower(frMotorPower);
+        blMotor.setPower(-blMotorPower);
         brMotor.setPower(brMotorPower);
 
         // Gamepad 2
 
+        // This swaps the robot's arm mode from manual to preset positions.
         if (G2RightBumper){
             Manual = true;
         }
@@ -164,16 +136,20 @@ public class AlexOp extends OpMode {
             Manual = false;
         }
 
-        if (Manual) {
-            armTarget = (int) (-G2LeftStickY * -5200);
+        if (Manual) { // This is the code for manual mode.
+
+            int armRotateTarget; // The arm rotate encoder's target.
+            int strTarget; // The extension encoder's target.
+
+            armRotateTarget = (int) (-G2LeftStickY * -5200);
             strTarget = (int) ((G2rightTrigger - G2leftTrigger) * 2200);
 
-            if (armTarget == 0) {
+            if (armRotateTarget == 0) {
                 armMotorPower = 0.0;
-            } else if (armTarget < 0) {
+            } else if (armRotateTarget < 0) {
                 armMotorPower = 1.0;
-            } else if (armTarget > 0) {
-                armTarget = 0;
+            } else if (armRotateTarget > 0) {
+                armRotateTarget = 0;
                 armMotorPower = 1.0;
             }
 
@@ -186,81 +162,81 @@ public class AlexOp extends OpMode {
                 strMotorPower = 1.0;
             }
 
-            armMotor.setTargetPosition(armTarget);
+            /* Both of these if-else statement blocks are to determine what the arm
+            * should be doing. If the target position is within reach, it'll go
+            * to that position. If there is no input for arm movement, the arm will
+            * stay put. If the arm's target is out of reach, it will set the target
+            * to zero, sending it back to its original position. */
+
+            armMotor.setTargetPosition(armRotateTarget);
             strMotor.setTargetPosition(strTarget);
+
+            armMotor.setPower(armMotorPower);
+            strMotor.setPower(strMotorPower);
         }
 
-        armMotor.setPower(1.0);
-        strMotor.setPower(1.0);
-
-        if (G2DpadUp){
-            setHighBar();
-        }
-        if (G2DpadRight){
-            Score();
-        }
-        if (G2DpadDown){
-            grabSub();
-        }
-        if (G2DpadLeft){
-            Transit();
+        if (!Manual) { // Code for the preset mode.
+            if (G2DpadUp) {
+                setHighBar();
+            }
+            if (G2DpadRight) {
+                Score(); // Needs to have setHighBar first.
+            }
+            if (G2DpadDown) {
+                grabSub();
+            }
+            if (G2DpadLeft) {
+                Transit();
+            }
         }
 
         if (G2aButton) {
-            // Program Left and Right Claw to close ....i know its wierd just go with it
-            claw1Servo.setPosition(LEFT_CLAW_OPEN_POSITION);
-            claw2Servo.setPosition(RIGHT_CLAW_OPEN_POSITION);
+            leftClawServo.setPosition(LEFT_CLAW_OPEN_POSITION);
+            rightClawServo.setPosition(RIGHT_CLAW_OPEN_POSITION);
         } else {
-            // Program Left and Right Claw to open
-            claw1Servo.setPosition(LEFT_CLAW_CLOSE_POSITION);
-            claw2Servo.setPosition(RIGHT_CLAW_CLOSE_POSITION);
+            leftClawServo.setPosition(LEFT_CLAW_CLOSE_POSITION);
+            rightClawServo.setPosition(RIGHT_CLAW_CLOSE_POSITION);
         }
 
         if (G2xButton) {
-            clawServo3.setPosition(0.0);
+            rotateClawServo.setPosition(0.0);
         }
 
         if (G2yButton) {
-            clawServo3.setPosition(1.0);
+            rotateClawServo.setPosition(1.0);
         }
-
-        //double clawMotorPosition = G2RightStickX - G2LeftStickX;
-        //if (clawMotorPosition != 0){
-        //    claw1Servo.setPosition(leftClawServo.getPosition()-clawMotorPosition);
-        //    claw2Servo.setPosition(rightClawServo.getPosition()+clawMotorPosition);
-        //}
-
 
         telemetry.addData("RotatePos: ", armMotor.getCurrentPosition());
         telemetry.addData("LiftPos: ", strMotor.getCurrentPosition());
-        //telemetry.addData("Arm Target: ", armTarget);
-        //telemetry.addData("String Target: ", strTarget);
+        telemetry.addData("Arm Target: ", armMotor.getTargetPosition());
+        telemetry.addData("String Target: ", armMotor.getTargetPosition());
+        telemetry.addData("Manual On: ", Manual);
     }
 
-    public void grabSub(){
+    public void grabSub(){ //Dpad Down
         setTrue = false;
         armMotor.setTargetPosition(-500);
         strMotor.setTargetPosition(2300);
-        clawServo3.setPosition(0.0);
+        rotateClawServo.setPosition(0.0);
     }
 
-    public void Transit(){
+    public void Transit(){ //Dpad Left
         setTrue = false;
         armMotor.setTargetPosition(-700);
         strMotor.setTargetPosition(0);
-        clawServo3.setPosition(1.0);
+        rotateClawServo.setPosition(1.0);
     }
 
-    public void setHighBar(){
+    public void setHighBar(){ //Dpad Up
         setTrue = true;
         armMotor.setTargetPosition(-5200);
-        //strMotor.setTargetPosition();
-        clawServo3.setPosition(0.0);
+        //strMotor.setTargetPosition(); // Don't know how high this has to be.
+        rotateClawServo.setPosition(0.0);
     }
 
-    public void Score(){
+    public void Score(){ //Dpad Right
         if (setTrue){
-            clawServo3.setPosition(1.0);
+            rotateClawServo.setPosition(1.0);
         }
     }
 

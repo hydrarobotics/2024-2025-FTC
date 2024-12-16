@@ -49,17 +49,17 @@ public class RobotHardware {
         liftRotateMotor.setPower(0.0);
         liftExtendMotor.setPower(0.0);
 
-       // leftClawServo.setPosition(1.0);
-       // rightClawServo.setPosition(0.0);
-       // clawRotateServo.setPosition(0.0);
+        leftClawServo.setPosition(0.5);
+        rightClawServo.setPosition(0.5);
+        clawRotateServo.setPosition(1.0);
 
         LFMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
         LBMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
         RBMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
         RFMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
 
-        liftRotateMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODERS);
-        liftExtendMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODERS);
+        liftRotateMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftExtendMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         LFMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LBMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
