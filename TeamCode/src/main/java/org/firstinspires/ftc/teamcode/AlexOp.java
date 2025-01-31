@@ -17,8 +17,9 @@ public class AlexOp extends OpMode {
     private DcMotor frMotor;
     private DcMotor brMotor;
 
-    private DcMotor armMotor;
-    private DcMotor strMotor;
+    private DcMotor armRotateMotor;
+    private DcMotor extendMotorRight;
+    private DcMotor extendMotorLeft;
     private Servo leftClawServo;
     private Servo rightClawServo;
     private Servo rotateClawServo;
@@ -29,7 +30,7 @@ public class AlexOp extends OpMode {
     private float LEFT_CLAW_OPEN_POSITION = 1.0f; //use SRS and update this value
     private float LEFT_CLAW_CLOSE_POSITION = 0.5f; //use SRS and update this value
     private float RIGHT_CLAW_OPEN_POSITION = 0.0f; //use SRS and update this value
-    private float RIGHT_CLAW_CLOSE_POSITION = 0.5f; //use SRS and update this value
+    private float RIGHT_CLAW_CLOSE_POSITION = 0.3f; //use SRS and update this value
 
     private RobotHardware robot = new RobotHardware(); // Class with all of the robot's hardware.
 
@@ -41,8 +42,9 @@ public class AlexOp extends OpMode {
         frMotor = robot.RFMotor;
         blMotor = robot.LBMotor;
         brMotor = robot.RBMotor;
-        armMotor = robot.liftRotateMotor; // The arm's rotation motor.
-        strMotor = robot.liftExtendMotor; // The arm extension motor.
+        armRotateMotor = robot.liftRotateMotor; // The arm's rotation motor.
+        extendMotorRight = robot.liftExtendMotorRight; // The arm extension motor.
+        extendMotorLeft = robot.liftExtendMotorLeft;
         leftClawServo = robot.leftClawServo;
         rightClawServo = robot.rightClawServo;
         rotateClawServo = robot.clawRotateServo; // Rotates the claw.
@@ -110,8 +112,9 @@ public class AlexOp extends OpMode {
         double frMotorPower = 0.0;
         double blMotorPower = 0.0;
         double brMotorPower = 0.0;
-        double armMotorPower = 0.0;
-        double strMotorPower = 0.0;
+        double armRotateMotorPower = 0.0;
+        double extendMotorRightPower = 0.0;
+        double extendMotorLeftPower = 0.0;
         double forwardPower = (G1rightTrigger - G1leftTrigger);
 
         //double servoLPos
@@ -139,27 +142,30 @@ public class AlexOp extends OpMode {
         if (Manual) { // This is the code for manual mode.
 
             int armRotateTarget; // The arm rotate encoder's target.
-            int strTarget; // The extension encoder's target.
+            int extensionTarget; // The extension encoder's target.
 
-            armRotateTarget = (int) (-G2LeftStickY * -5200);
-            strTarget = (int) ((G2rightTrigger - G2leftTrigger) * 2200);
+            armRotateTarget = (int) (-G2LeftStickY * -4466);
+            extensionTarget = (int) ((G2rightTrigger - G2leftTrigger) * 2200);
 
             if (armRotateTarget == 0) {
-                armMotorPower = 0.0;
+                armRotateMotorPower = 0.0;
             } else if (armRotateTarget < 0) {
-                armMotorPower = 1.0;
+                armRotateMotorPower = 1.0;
             } else if (armRotateTarget > 0) {
                 armRotateTarget = 0;
-                armMotorPower = 1.0;
+                armRotateMotorPower = 1.0;
             }
 
-            if (strTarget == 0) {
-                strMotorPower = 0.0;
-            } else if (strTarget > 0) {
-                strMotorPower = 1.0;
-            } else if (strTarget < 0) {
-                strTarget = 0;
-                strMotorPower = 1.0;
+            if (extensionTarget == 0) {
+                extendMotorRightPower = 0.0;
+                extendMotorLeftPower = 0.0;
+            } else if (extensionTarget > 0) {
+                extendMotorRightPower = 1.0;
+                extendMotorLeftPower = 1.0;
+            } else if (extensionTarget < 0) {
+                extensionTarget = 0;
+                extendMotorRightPower = 1.0;
+                extendMotorLeftPower = 1.0;
             }
 
             /* Both of these if-else statement blocks are to determine what the arm
@@ -168,11 +174,13 @@ public class AlexOp extends OpMode {
             * stay put. If the arm's target is out of reach, it will set the target
             * to zero, sending it back to its original position. */
 
-            armMotor.setTargetPosition(armRotateTarget);
-            strMotor.setTargetPosition(strTarget);
+            armRotateMotor.setTargetPosition(armRotateTarget);
+            extendMotorRight.setTargetPosition(extensionTarget);
+            extendMotorLeft.setTargetPosition(-extensionTarget);
 
-            armMotor.setPower(armMotorPower);
-            strMotor.setPower(strMotorPower);
+            armRotateMotor.setPower(armRotateMotorPower);
+            extendMotorRight.setPower(extendMotorRightPower);
+            extendMotorLeft.setPower(extendMotorLeftPower);
         }
 
         if (!Manual) { // Code for the preset mode.
@@ -199,38 +207,41 @@ public class AlexOp extends OpMode {
         }
 
         if (G2xButton) {
-            rotateClawServo.setPosition(0.0);
+            rotateClawServo.setPosition(0.1);
         }
 
         if (G2yButton) {
             rotateClawServo.setPosition(1.0);
         }
 
-        telemetry.addData("RotatePos: ", armMotor.getCurrentPosition());
-        telemetry.addData("LiftPos: ", strMotor.getCurrentPosition());
-        telemetry.addData("Arm Target: ", armMotor.getTargetPosition());
-        telemetry.addData("String Target: ", armMotor.getTargetPosition());
+        telemetry.addData("Rotate Pos: ", armRotateMotor.getCurrentPosition());
+        telemetry.addData("Right Extend Pos: ", extendMotorRight.getCurrentPosition());
+        telemetry.addData("Right Extend Target: ", extendMotorRight.getTargetPosition());
+        telemetry.addData("Left Extend Pos: ", extendMotorLeft.getCurrentPosition());
+        telemetry.addData("Left Extend Target: ", extendMotorLeft.getTargetPosition());
         telemetry.addData("Manual On: ", Manual);
     }
 
     public void grabSub(){ //Dpad Down
         setTrue = false;
-        armMotor.setTargetPosition(-500);
-        strMotor.setTargetPosition(2300);
+        armRotateMotor.setTargetPosition(-500);
+        extendMotorRight.setTargetPosition(2300);
+        extendMotorLeft.setTargetPosition(-extendMotorRight.getTargetPosition());
         rotateClawServo.setPosition(0.0);
     }
 
     public void Transit(){ //Dpad Left
         setTrue = false;
-        armMotor.setTargetPosition(-700);
-        strMotor.setTargetPosition(0);
+        armRotateMotor.setTargetPosition(-700);
+        extendMotorRight.setTargetPosition(0);
+        extendMotorLeft.setTargetPosition(-extendMotorRight.getTargetPosition());
         rotateClawServo.setPosition(1.0);
     }
 
     public void setHighBar(){ //Dpad Up
         setTrue = true;
-        armMotor.setTargetPosition(-5200);
-        //strMotor.setTargetPosition(); // Don't know how high this has to be.
+        armRotateMotor.setTargetPosition(-5200);
+        //treadMotor.setTargetPosition(); // Don't know how high this has to be.
         rotateClawServo.setPosition(0.0);
     }
 

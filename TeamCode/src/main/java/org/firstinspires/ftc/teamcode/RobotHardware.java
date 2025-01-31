@@ -17,7 +17,8 @@ public class RobotHardware {
 
     //These motors control the Intake and Outtake Systems
     public DcMotor liftRotateMotor; //Motor that actuates the lift motor
-    public DcMotor liftExtendMotor; //Motor that actuates the extension motor
+    public DcMotor liftExtendMotorRight; //Motor that actuates the extension motor
+    public DcMotor liftExtendMotorLeft;
 
     public Servo leftClawServo;
     public Servo rightClawServo;
@@ -35,7 +36,8 @@ public class RobotHardware {
         RFMotor = hardwareMap.get(DcMotor.class, "RF");
 
         liftRotateMotor = hardwareMap.get(DcMotor.class, "liftRotate");
-        liftExtendMotor = hardwareMap.get(DcMotor.class, "liftExtend");
+        liftExtendMotorRight = hardwareMap.get(DcMotor.class, "liftExtendRight");
+        liftExtendMotorLeft = hardwareMap.get(DcMotor.class, "liftExtendLeft");
 
         leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
         rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
@@ -45,9 +47,9 @@ public class RobotHardware {
         LBMotor.setPower(0.0);
         RBMotor.setPower(0.0);
         RFMotor.setPower(0.0);
-
         liftRotateMotor.setPower(0.0);
-        liftExtendMotor.setPower(0.0);
+        liftExtendMotorRight.setPower(0.0);
+        liftExtendMotorLeft.setPower(0.0);
 
         leftClawServo.setPosition(0.5);
         rightClawServo.setPosition(0.5);
@@ -59,7 +61,8 @@ public class RobotHardware {
         RFMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODERS);
 
         liftRotateMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftExtendMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftExtendMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftExtendMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         LFMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LBMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -67,6 +70,7 @@ public class RobotHardware {
         RFMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         liftRotateMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftExtendMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftExtendMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 }
